@@ -1,14 +1,10 @@
 /**
  * AI-bot input/output schemas (campus-ai contracts/ source-of-truth).
  *
- * Phase 1 ships this directory as a placeholder; Window C leads the
- * Phase 2 population as part of the Interview Brain v2 release. Files
- * expected:
- *   - int-agent-turn.ts (sessionInputs + agentSignals + bot output)
- *   - lsrw-skill-gen.ts
- *   - code-q-gen.ts
- *   - code-quality.ts
+ * Phase 2 — Window C populates as part of Round 9 work areas (Interview
+ * Brain v2 + analyser numeric metrics + coding bots once needed).
  *
- * Locked shapes land via the Interview Brain v2 COMMS thread.
+ * Locked shapes land via COMMS proposals before the producer + consumer
+ * windows pull a new submodule SHA.
  */
-export {}
+export * from './int-agent-turn.js'
