@@ -1,0 +1,23 @@
+{
+  "name": "@crezam/contracts",
+  "version": "0.1.0",
+  "description": "Cross-window contract types + Zod schemas for the Crezam Campus V2 platform (campus-platform-api / campus-frontend / campus-ai / campus-testenv).",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./ws": "./src/ws/index.ts",
+    "./api": "./src/api/index.ts",
+    "./enums": "./src/enums/index.ts",
+    "./analyser": "./src/analyser/index.ts",
+    "./ai-bots": "./src/ai-bots/index.ts"
+  },
+  "files": ["src"],
+  "peerDependencies": {
+    "zod": ">=3.22.0 <4"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  }
+}
