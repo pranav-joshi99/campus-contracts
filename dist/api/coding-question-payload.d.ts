@@ -1,0 +1,130 @@
+/**
+ * Coding question payload — the normalized shape Window A's
+ * GET /api/v2/take/:assessmentId/sections/:sectionId/questions returns
+ * for coding-typed questions, AND the body Window D's
+ * /testenv/coding/run + /testenv/coding/submit accept.
+ *
+ * Pulled verbatim at platform-api SHA 58230e1 (Round 8.2 normalizer at
+ * fetch). Source payload (Window C code-q-gen) uses `testCases[].isVisible`;
+ * the normalizer splits into `visibleTests` + `hiddenTests` and injects
+ * default time/memory limits if absent. Both legacy + normalized fields
+ * surface in the response for back-compat with the existing FE renderer.
+ */
+import { z } from 'zod';
+export declare const CodingTestCase: z.ZodObject<{
+    input: z.ZodString;
+    expectedOutput: z.ZodString;
+    isVisible: z.ZodBoolean;
+}, "strip", z.ZodTypeAny, {
+    input: string;
+    expectedOutput: string;
+    isVisible: boolean;
+}, {
+    input: string;
+    expectedOutput: string;
+    isVisible: boolean;
+}>;
+export type CodingTestCase = z.infer<typeof CodingTestCase>;
+/**
+ * Normalized candidate-facing coding payload. `testCases` is the legacy
+ * single-array shape Window C emits; `visibleTests` + `hiddenTests` are
+ * the Window A normalizer's split. Time + memory limits land as
+ * top-level fields with sensible defaults when the payload doesn't
+ * specify (5sec / 256MB).
+ */
+export declare const CodingQuestionPayload: z.ZodObject<{
+    stem: z.ZodString;
+    prompt: z.ZodString;
+    difficulty: z.ZodOptional<z.ZodNumber>;
+    starterCode: z.ZodOptional<z.ZodString>;
+    /** Legacy single array — preserved for back-compat. */
+    testCases: z.ZodArray<z.ZodObject<{
+        input: z.ZodString;
+        expectedOutput: z.ZodString;
+        isVisible: z.ZodBoolean;
+    }, "strip", z.ZodTypeAny, {
+        input: string;
+        expectedOutput: string;
+        isVisible: boolean;
+    }, {
+        input: string;
+        expectedOutput: string;
+        isVisible: boolean;
+    }>, "many">;
+    /** Round 8.2 normalizer output. */
+    visibleTests: z.ZodArray<z.ZodObject<{
+        input: z.ZodString;
+        expectedOutput: z.ZodString;
+        isVisible: z.ZodBoolean;
+    }, "strip", z.ZodTypeAny, {
+        input: string;
+        expectedOutput: string;
+        isVisible: boolean;
+    }, {
+        input: string;
+        expectedOutput: string;
+        isVisible: boolean;
+    }>, "many">;
+    hiddenTests: z.ZodArray<z.ZodObject<{
+        input: z.ZodString;
+        expectedOutput: z.ZodString;
+        isVisible: z.ZodBoolean;
+    }, "strip", z.ZodTypeAny, {
+        input: string;
+        expectedOutput: string;
+        isVisible: boolean;
+    }, {
+        input: string;
+        expectedOutput: string;
+        isVisible: boolean;
+    }>, "many">;
+    /** Judge0 time limit per case, seconds. Default 5. */
+    timeLimitSec: z.ZodNumber;
+    /** Judge0 memory limit per case, MB. Default 256. */
+    memoryLimitMB: z.ZodNumber;
+}, "strip", z.ZodTypeAny, {
+    stem: string;
+    prompt: string;
+    testCases: {
+        input: string;
+        expectedOutput: string;
+        isVisible: boolean;
+    }[];
+    visibleTests: {
+        input: string;
+        expectedOutput: string;
+        isVisible: boolean;
+    }[];
+    hiddenTests: {
+        input: string;
+        expectedOutput: string;
+        isVisible: boolean;
+    }[];
+    timeLimitSec: number;
+    memoryLimitMB: number;
+    difficulty?: number | undefined;
+    starterCode?: string | undefined;
+}, {
+    stem: string;
+    prompt: string;
+    testCases: {
+        input: string;
+        expectedOutput: string;
+        isVisible: boolean;
+    }[];
+    visibleTests: {
+        input: string;
+        expectedOutput: string;
+        isVisible: boolean;
+    }[];
+    hiddenTests: {
+        input: string;
+        expectedOutput: string;
+        isVisible: boolean;
+    }[];
+    timeLimitSec: number;
+    memoryLimitMB: number;
+    difficulty?: number | undefined;
+    starterCode?: string | undefined;
+}>;
+export type CodingQuestionPayload = z.infer<typeof CodingQuestionPayload>;

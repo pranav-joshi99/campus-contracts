@@ -3,21 +3,41 @@
   "version": "0.1.0",
   "description": "Cross-window contract types + Zod schemas for the Crezam Campus V2 platform (campus-platform-api / campus-frontend / campus-ai / campus-testenv).",
   "type": "module",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./ws": "./src/ws/index.ts",
-    "./api": "./src/api/index.ts",
-    "./enums": "./src/enums/index.ts",
-    "./analyser": "./src/analyser/index.ts",
-    "./ai-bots": "./src/ai-bots/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./ws": {
+      "types": "./dist/ws/index.d.ts",
+      "default": "./dist/ws/index.js"
+    },
+    "./api": {
+      "types": "./dist/api/index.d.ts",
+      "default": "./dist/api/index.js"
+    },
+    "./enums": {
+      "types": "./dist/enums/index.d.ts",
+      "default": "./dist/enums/index.js"
+    },
+    "./analyser": {
+      "types": "./dist/analyser/index.d.ts",
+      "default": "./dist/analyser/index.js"
+    },
+    "./ai-bots": {
+      "types": "./dist/ai-bots/index.d.ts",
+      "default": "./dist/ai-bots/index.js"
+    }
   },
-  "files": ["src"],
+  "files": ["dist", "src"],
   "peerDependencies": {
     "zod": ">=3.22.0 <4"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json",
+    "prepare": "tsc -p tsconfig.build.json"
   }
 }
