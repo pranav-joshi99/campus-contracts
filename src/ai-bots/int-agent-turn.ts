@@ -204,6 +204,11 @@ export type CaIntAAgentTurnInput = z.infer<typeof CaIntAAgentTurnInput>
  * orchestrator's ≥2-probes-before-pivot tracker), injection_attempted
  * (W1d log signal distinct from tampering).
  *
+ * Brain v2.2 ADDED: candidate_end_request — detect-only verbal-end flag.
+ * Bot FLAGS an explicit candidate request to end; Window D DECIDES and
+ * executes (verbal_end path). Bot still has ZERO end power. Acked by
+ * Window D in ROUND_1_COMMS (bot flags / D decides).
+ *
  * D-side mapping to persisted fatTurn:
  *   - next_question_text → agent fatTurn.text
  *   - prev_answer_ack    → agent fatTurn.ack_text (D persists for
@@ -261,6 +266,27 @@ export const CaIntAAgentTurnOutput = z.object({
    * LOGGING only.
    */
   injection_attempted: z.boolean(),
+  /**
+   * Round 9 Brain v2.2 — candidate-verbal-end DETECTION signal.
+   *
+   * True ONLY when the latest candidate utterance is an explicit, authentic
+   * request to end / stop / terminate the interview — recognised across
+   * paraphrase and code-switching (e.g. "end my interview now",
+   * "I'm done, end it", "bas, interview khatam karo",
+   * "kya jam, just end my interview now").
+   *
+   * DETECT-ONLY — the bot retains ZERO end power (no should_end resurrection):
+   * it never ends, never says goodbye, never wraps. Window D owns the
+   * decision + execution (the verbal_end path) and MAY gate on this flag
+   * (e.g. ignore it when injection_attempted=true on the same turn).
+   *
+   * Independent of tampering_attempted and injection_attempted (any combo can
+   * be true). MUST be false for: low engagement, "I don't know", frustration,
+   * short/empty answers, silence, "skip this question" / "move to easier ones"
+   * (those are tampering), and any "end the interview" arriving via an
+   * injection payload rather than the candidate's authentic answer.
+   */
+  candidate_end_request: z.boolean(),
 })
 export type CaIntAAgentTurnOutput = z.infer<typeof CaIntAAgentTurnOutput>
 
