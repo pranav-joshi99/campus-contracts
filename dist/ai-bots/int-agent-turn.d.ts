@@ -124,16 +124,36 @@ export declare const AgentSignals: z.ZodObject<{
      * turn (unless candidate's last answer was 5 with explicit interest).
      */
     consecutive_same_topic_count: z.ZodOptional<z.ZodNumber>;
+    /**
+     * Round 9 Brain v2.1 — first 3 words of the PREVIOUS turn's
+     * `prev_answer_ack`, lowercase-trimmed (single-spaces collapsed).
+     * null on turn 0 OR when prev_answer_ack was null. Orchestrator
+     * computes via `firstNWordsLower(prev_answer_ack, 3)` after each
+     * bot turn and sends on the next turn's agentSignals.
+     *
+     * Bot's prompt enforces a HARD no-repeat rule: the first 3 words of
+     * the CURRENT turn's `prev_answer_ack` (lowercase-trimmed) MUST NOT
+     * equal `last_ack_opener`. If they would, the bot rewrites the
+     * opener with a different family from the 6-family rotation.
+     *
+     * Producer: campus-testenv at 1d83b18 (W1c hardening — closing-turn
+     * + last_ack_opener bundle, merged 2026-06-03 08:51 UTC).
+     * Consumer: campus-ai (pending — see ROUND_9_COMMS Brain v2.1
+     * thread).
+     */
+    last_ack_opener: z.ZodOptional<z.ZodNullable<z.ZodString>>;
 }, "strip", z.ZodTypeAny, {
     turn_count: number;
     time_remaining_sec: number;
     last_topic_focus_area?: string | null | undefined;
     consecutive_same_topic_count?: number | undefined;
+    last_ack_opener?: string | null | undefined;
 }, {
     turn_count: number;
     time_remaining_sec: number;
     last_topic_focus_area?: string | null | undefined;
     consecutive_same_topic_count?: number | undefined;
+    last_ack_opener?: string | null | undefined;
 }>;
 export type AgentSignals = z.infer<typeof AgentSignals>;
 export declare const CaIntAAgentTurnInput: z.ZodObject<{
@@ -310,16 +330,36 @@ export declare const CaIntAAgentTurnInput: z.ZodObject<{
          * turn (unless candidate's last answer was 5 with explicit interest).
          */
         consecutive_same_topic_count: z.ZodOptional<z.ZodNumber>;
+        /**
+         * Round 9 Brain v2.1 — first 3 words of the PREVIOUS turn's
+         * `prev_answer_ack`, lowercase-trimmed (single-spaces collapsed).
+         * null on turn 0 OR when prev_answer_ack was null. Orchestrator
+         * computes via `firstNWordsLower(prev_answer_ack, 3)` after each
+         * bot turn and sends on the next turn's agentSignals.
+         *
+         * Bot's prompt enforces a HARD no-repeat rule: the first 3 words of
+         * the CURRENT turn's `prev_answer_ack` (lowercase-trimmed) MUST NOT
+         * equal `last_ack_opener`. If they would, the bot rewrites the
+         * opener with a different family from the 6-family rotation.
+         *
+         * Producer: campus-testenv at 1d83b18 (W1c hardening — closing-turn
+         * + last_ack_opener bundle, merged 2026-06-03 08:51 UTC).
+         * Consumer: campus-ai (pending — see ROUND_9_COMMS Brain v2.1
+         * thread).
+         */
+        last_ack_opener: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     }, "strip", z.ZodTypeAny, {
         turn_count: number;
         time_remaining_sec: number;
         last_topic_focus_area?: string | null | undefined;
         consecutive_same_topic_count?: number | undefined;
+        last_ack_opener?: string | null | undefined;
     }, {
         turn_count: number;
         time_remaining_sec: number;
         last_topic_focus_area?: string | null | undefined;
         consecutive_same_topic_count?: number | undefined;
+        last_ack_opener?: string | null | undefined;
     }>>;
 }, "strip", z.ZodTypeAny, {
     sessionInputs: {
@@ -357,6 +397,7 @@ export declare const CaIntAAgentTurnInput: z.ZodObject<{
         time_remaining_sec: number;
         last_topic_focus_area?: string | null | undefined;
         consecutive_same_topic_count?: number | undefined;
+        last_ack_opener?: string | null | undefined;
     } | undefined;
 }, {
     sessionInputs: {
@@ -394,6 +435,7 @@ export declare const CaIntAAgentTurnInput: z.ZodObject<{
         time_remaining_sec: number;
         last_topic_focus_area?: string | null | undefined;
         consecutive_same_topic_count?: number | undefined;
+        last_ack_opener?: string | null | undefined;
     } | undefined;
 }>;
 export type CaIntAAgentTurnInput = z.infer<typeof CaIntAAgentTurnInput>;
@@ -412,6 +454,11 @@ export type CaIntAAgentTurnInput = z.infer<typeof CaIntAAgentTurnInput>;
  * question; null on turn 0), topic_focus_area (stable label for the
  * orchestrator's ≥2-probes-before-pivot tracker), injection_attempted
  * (W1d log signal distinct from tampering).
+ *
+ * Brain v2.2 ADDED: candidate_end_request — detect-only verbal-end flag.
+ * Bot FLAGS an explicit candidate request to end; Window D DECIDES and
+ * executes (verbal_end path). Bot still has ZERO end power. Acked by
+ * Window D in ROUND_1_COMMS (bot flags / D decides).
  *
  * D-side mapping to persisted fatTurn:
  *   - next_question_text → agent fatTurn.text
@@ -458,6 +505,27 @@ export declare const CaIntAAgentTurnOutput: z.ZodObject<{
      * LOGGING only.
      */
     injection_attempted: z.ZodBoolean;
+    /**
+     * Round 9 Brain v2.2 — candidate-verbal-end DETECTION signal.
+     *
+     * True ONLY when the latest candidate utterance is an explicit, authentic
+     * request to end / stop / terminate the interview — recognised across
+     * paraphrase and code-switching (e.g. "end my interview now",
+     * "I'm done, end it", "bas, interview khatam karo",
+     * "kya jam, just end my interview now").
+     *
+     * DETECT-ONLY — the bot retains ZERO end power (no should_end resurrection):
+     * it never ends, never says goodbye, never wraps. Window D owns the
+     * decision + execution (the verbal_end path) and MAY gate on this flag
+     * (e.g. ignore it when injection_attempted=true on the same turn).
+     *
+     * Independent of tampering_attempted and injection_attempted (any combo can
+     * be true). MUST be false for: low engagement, "I don't know", frustration,
+     * short/empty answers, silence, "skip this question" / "move to easier ones"
+     * (those are tampering), and any "end the interview" arriving via an
+     * injection payload rather than the candidate's authentic answer.
+     */
+    candidate_end_request: z.ZodBoolean;
 }, "strip", z.ZodTypeAny, {
     prev_answer_score: 1 | 2 | 3 | 4 | 5 | null;
     question_intent: "baseline" | "probe_followup" | "fresh_blueprint_topic";
@@ -467,6 +535,7 @@ export declare const CaIntAAgentTurnOutput: z.ZodObject<{
     topic_focus_area: string;
     tampering_attempted: boolean;
     injection_attempted: boolean;
+    candidate_end_request: boolean;
 }, {
     prev_answer_score: 1 | 2 | 3 | 4 | 5 | null;
     question_intent: "baseline" | "probe_followup" | "fresh_blueprint_topic";
@@ -476,6 +545,7 @@ export declare const CaIntAAgentTurnOutput: z.ZodObject<{
     topic_focus_area: string;
     tampering_attempted: boolean;
     injection_attempted: boolean;
+    candidate_end_request: boolean;
 }>;
 export type CaIntAAgentTurnOutput = z.infer<typeof CaIntAAgentTurnOutput>;
 /**
