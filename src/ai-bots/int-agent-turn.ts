@@ -108,6 +108,24 @@ export const AgentSignals = z.object({
    * turn (unless candidate's last answer was 5 with explicit interest).
    */
   consecutive_same_topic_count: z.number().int().nonnegative().optional(),
+  /**
+   * Round 9 Brain v2.1 — first 3 words of the PREVIOUS turn's
+   * `prev_answer_ack`, lowercase-trimmed (single-spaces collapsed).
+   * null on turn 0 OR when prev_answer_ack was null. Orchestrator
+   * computes via `firstNWordsLower(prev_answer_ack, 3)` after each
+   * bot turn and sends on the next turn's agentSignals.
+   *
+   * Bot's prompt enforces a HARD no-repeat rule: the first 3 words of
+   * the CURRENT turn's `prev_answer_ack` (lowercase-trimmed) MUST NOT
+   * equal `last_ack_opener`. If they would, the bot rewrites the
+   * opener with a different family from the 6-family rotation.
+   *
+   * Producer: campus-testenv at 1d83b18 (W1c hardening — closing-turn
+   * + last_ack_opener bundle, merged 2026-06-03 08:51 UTC).
+   * Consumer: campus-ai (pending — see ROUND_9_COMMS Brain v2.1
+   * thread).
+   */
+  last_ack_opener: z.string().nullable().optional(),
 })
 export type AgentSignals = z.infer<typeof AgentSignals>
 
