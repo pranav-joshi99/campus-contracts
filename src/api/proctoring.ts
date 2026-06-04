@@ -1,0 +1,118 @@
+/**
+ * Proctoring + attempt-level disqualify / reset DTOs — R10 BATCH 2.
+ *
+ * Locked at R10 mega dispatch:
+ *   - Single ingest path: POST /api/v2/proctoring/events on platform-api
+ *     (A's counter to D's testenv-side route). One auth gate, one writer.
+ *   - 20-value event taxonomy (phase2a 15 + R10 4 + face_match_fail).
+ *   - Disqualify state lives on assessment_attempts, NOT on
+ *     interview_sessions.ended_reason (D-Q5 lock).
+ *   - Disqualify is idempotent — re-fires (e.g. WS reconnect) get 409 with
+ *     the same terminal-state body.
+ *   - Reset Attempt is admin + assessor (assessors can recover candidates
+ *     too); audit-logged; idempotent.
+ */
+import { z } from 'zod'
+
+export const PROCTORING_EVENT_TYPES = [
+  'tab_switch',
+  'window_blur',
+  'window_focus',
+  'fullscreen_exit',
+  'copy',
+  'cut',
+  'paste',
+  'devtools_open',
+  'multi_screen',
+  'right_click',
+  'face_check',
+  'no_face',
+  'multi_face',
+  'multi_voice',
+  'camera_lost',
+  'face_service_degraded',
+  'face_match_fail',
+  'bg_noise',
+  'tab_exit_warning_shown',
+  'tab_exit_strike',
+] as const
+export type ProctoringEventType = (typeof PROCTORING_EVENT_TYPES)[number]
+export const proctoringEventTypeSchema = z.enum(PROCTORING_EVENT_TYPES)
+
+export const PROCTORING_SEVERITIES = ['info', 'warning', 'violation'] as const
+export type ProctoringSeverity = (typeof PROCTORING_SEVERITIES)[number]
+export const proctoringSeveritySchema = z.enum(PROCTORING_SEVERITIES)
+
+export const proctoringEventSchema = z
+  .object({
+    eventType: proctoringEventTypeSchema,
+    severity: proctoringSeveritySchema,
+    /** ISO-8601 UTC. */
+    occurredAt: z.string().datetime(),
+    detailJson: z.record(z.unknown()).optional(),
+    evidenceBlobPath: z.string().max(512).optional(),
+  })
+  .strict()
+export type ProctoringEventDto = z.infer<typeof proctoringEventSchema>
+
+export const proctoringBatchSchema = z
+  .object({
+    attemptId: z.number().int().positive(),
+    events: z.array(proctoringEventSchema).max(1000),
+  })
+  .strict()
+export type ProctoringBatch = z.infer<typeof proctoringBatchSchema>
+
+/** Response from POST /api/v2/proctoring/events. */
+export const proctoringBatchResponseSchema = z.object({
+  accepted: z.number().int().nonnegative(),
+  persisted: z.number().int().nonnegative(),
+})
+export type ProctoringBatchResponse = z.infer<typeof proctoringBatchResponseSchema>
+
+// ---------------------------------------------------------------------------
+// Disqualify endpoint — POST /api/v2/take/:assessmentId/disqualify
+// ---------------------------------------------------------------------------
+
+export const DISQUALIFY_REASONS = [
+  'tab_exit_third_strike',
+  'face_mismatch_persistent',
+] as const
+export type DisqualifyReason = (typeof DISQUALIFY_REASONS)[number]
+
+export const disqualifyRequestSchema = z
+  .object({
+    reason: z.enum(DISQUALIFY_REASONS),
+    occurredAt: z.string().datetime(),
+    strikeCount: z.number().int().positive().optional(),
+    /** Optional FK into proctoring_events for cross-reference. */
+    finalEventId: z.number().int().positive().optional(),
+  })
+  .strict()
+export type DisqualifyRequest = z.infer<typeof disqualifyRequestSchema>
+
+export const disqualifyResponseSchema = z.object({
+  disqualified: z.literal(true),
+  terminal: z.literal(true),
+})
+export type DisqualifyResponse = z.infer<typeof disqualifyResponseSchema>
+
+// ---------------------------------------------------------------------------
+// Reset-attempt endpoint — POST /api/v2/attempts/:attemptId/reset
+// ---------------------------------------------------------------------------
+
+export const resetAttemptRequestSchema = z
+  .object({
+    /** Free-text rationale, audit-logged. */
+    notes: z.string().max(1024).optional(),
+  })
+  .strict()
+export type ResetAttemptRequest = z.infer<typeof resetAttemptRequestSchema>
+
+export const resetAttemptResponseSchema = z.object({
+  attemptId: z.number().int().positive(),
+  status: z.string(),
+  disqualified: z.boolean(),
+  tabExitStrikeCount: z.number().int().nonnegative(),
+})
+export type ResetAttemptResponse = z.infer<typeof resetAttemptResponseSchema>
