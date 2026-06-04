@@ -29,6 +29,10 @@
     "./ai-bots": {
       "types": "./dist/ai-bots/index.d.ts",
       "default": "./dist/ai-bots/index.js"
+    },
+    "./lsrw-config": {
+      "types": "./dist/lsrw-config.d.ts",
+      "default": "./dist/lsrw-config.js"
     }
   },
   "files": ["dist", "src"],
