@@ -85,7 +85,9 @@ export type CommunicationAxes = z.infer<typeof communicationAxesSchema>
 
 export const proctoringReportSchema = z.object({
   summary: z.string(),
-  countsByType: z.record(z.number()),
+  // 2-arg form — Zod 4 removed the 1-arg overload; works in both Zod 3 and 4
+  // so the FE radar (Zod 4) and the BE assembly (Zod 3) parse identically.
+  countsByType: z.record(z.string(), z.number()),
   countsBySeverity: z.object({
     info: z.number(),
     warning: z.number(),

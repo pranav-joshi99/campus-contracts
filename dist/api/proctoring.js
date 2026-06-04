@@ -44,7 +44,9 @@ export const proctoringEventSchema = z
     severity: proctoringSeveritySchema,
     /** ISO-8601 UTC. */
     occurredAt: z.string().datetime(),
-    detailJson: z.record(z.unknown()).optional(),
+    // 2-arg form — Zod 4 removed the 1-arg overload; this shape works in both
+    // Zod 3 and 4 so campus-frontend (Zod 4) and platform-api (Zod 3) agree.
+    detailJson: z.record(z.string(), z.unknown()).optional(),
     evidenceBlobPath: z.string().max(512).optional(),
 })
     .strict();
