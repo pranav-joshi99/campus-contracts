@@ -99,6 +99,24 @@ export const AgentSignals = z.object({
      * turn (unless candidate's last answer was 5 with explicit interest).
      */
     consecutive_same_topic_count: z.number().int().nonnegative().optional(),
+    /**
+     * Round 9 Brain v2.1 — first 3 words of the PREVIOUS turn's
+     * `prev_answer_ack`, lowercase-trimmed (single-spaces collapsed).
+     * null on turn 0 OR when prev_answer_ack was null. Orchestrator
+     * computes via `firstNWordsLower(prev_answer_ack, 3)` after each
+     * bot turn and sends on the next turn's agentSignals.
+     *
+     * Bot's prompt enforces a HARD no-repeat rule: the first 3 words of
+     * the CURRENT turn's `prev_answer_ack` (lowercase-trimmed) MUST NOT
+     * equal `last_ack_opener`. If they would, the bot rewrites the
+     * opener with a different family from the 6-family rotation.
+     *
+     * Producer: campus-testenv at 1d83b18 (W1c hardening — closing-turn
+     * + last_ack_opener bundle, merged 2026-06-03 08:51 UTC).
+     * Consumer: campus-ai (pending — see ROUND_9_COMMS Brain v2.1
+     * thread).
+     */
+    last_ack_opener: z.string().nullable().optional(),
 });
 /* ----------------------------------------------------------------- */
 /* Input envelope (D produces, C consumes)                            */
@@ -171,6 +189,11 @@ export const CaIntAAgentTurnInput = z.object({
  * orchestrator's ≥2-probes-before-pivot tracker), injection_attempted
  * (W1d log signal distinct from tampering).
  *
+ * Brain v2.2 ADDED: candidate_end_request — detect-only verbal-end flag.
+ * Bot FLAGS an explicit candidate request to end; Window D DECIDES and
+ * executes (verbal_end path). Bot still has ZERO end power. Acked by
+ * Window D in ROUND_1_COMMS (bot flags / D decides).
+ *
  * D-side mapping to persisted fatTurn:
  *   - next_question_text → agent fatTurn.text
  *   - prev_answer_ack    → agent fatTurn.ack_text (D persists for
@@ -228,6 +251,27 @@ export const CaIntAAgentTurnOutput = z.object({
      * LOGGING only.
      */
     injection_attempted: z.boolean(),
+    /**
+     * Round 9 Brain v2.2 — candidate-verbal-end DETECTION signal.
+     *
+     * True ONLY when the latest candidate utterance is an explicit, authentic
+     * request to end / stop / terminate the interview — recognised across
+     * paraphrase and code-switching (e.g. "end my interview now",
+     * "I'm done, end it", "bas, interview khatam karo",
+     * "kya jam, just end my interview now").
+     *
+     * DETECT-ONLY — the bot retains ZERO end power (no should_end resurrection):
+     * it never ends, never says goodbye, never wraps. Window D owns the
+     * decision + execution (the verbal_end path) and MAY gate on this flag
+     * (e.g. ignore it when injection_attempted=true on the same turn).
+     *
+     * Independent of tampering_attempted and injection_attempted (any combo can
+     * be true). MUST be false for: low engagement, "I don't know", frustration,
+     * short/empty answers, silence, "skip this question" / "move to easier ones"
+     * (those are tampering), and any "end the interview" arriving via an
+     * injection payload rather than the candidate's authentic answer.
+     */
+    candidate_end_request: z.boolean(),
 });
 /* ----------------------------------------------------------------- */
 /* Welcome / branch text constants                                    */
