@@ -27,15 +27,15 @@ export declare const proctoringEventSchema: z.ZodObject<{
     detailJson: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
     evidenceBlobPath: z.ZodOptional<z.ZodString>;
 }, "strict", z.ZodTypeAny, {
+    occurredAt: string;
     eventType: "tab_switch" | "window_blur" | "window_focus" | "fullscreen_exit" | "copy" | "cut" | "paste" | "devtools_open" | "multi_screen" | "right_click" | "face_check" | "no_face" | "multi_face" | "multi_voice" | "camera_lost" | "face_service_degraded" | "face_match_fail" | "bg_noise" | "tab_exit_warning_shown" | "tab_exit_strike";
     severity: "info" | "warning" | "violation";
-    occurredAt: string;
     detailJson?: Record<string, unknown> | undefined;
     evidenceBlobPath?: string | undefined;
 }, {
+    occurredAt: string;
     eventType: "tab_switch" | "window_blur" | "window_focus" | "fullscreen_exit" | "copy" | "cut" | "paste" | "devtools_open" | "multi_screen" | "right_click" | "face_check" | "no_face" | "multi_face" | "multi_voice" | "camera_lost" | "face_service_degraded" | "face_match_fail" | "bg_noise" | "tab_exit_warning_shown" | "tab_exit_strike";
     severity: "info" | "warning" | "violation";
-    occurredAt: string;
     detailJson?: Record<string, unknown> | undefined;
     evidenceBlobPath?: string | undefined;
 }>;
@@ -50,33 +50,33 @@ export declare const proctoringBatchSchema: z.ZodObject<{
         detailJson: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
         evidenceBlobPath: z.ZodOptional<z.ZodString>;
     }, "strict", z.ZodTypeAny, {
+        occurredAt: string;
         eventType: "tab_switch" | "window_blur" | "window_focus" | "fullscreen_exit" | "copy" | "cut" | "paste" | "devtools_open" | "multi_screen" | "right_click" | "face_check" | "no_face" | "multi_face" | "multi_voice" | "camera_lost" | "face_service_degraded" | "face_match_fail" | "bg_noise" | "tab_exit_warning_shown" | "tab_exit_strike";
         severity: "info" | "warning" | "violation";
-        occurredAt: string;
         detailJson?: Record<string, unknown> | undefined;
         evidenceBlobPath?: string | undefined;
     }, {
+        occurredAt: string;
         eventType: "tab_switch" | "window_blur" | "window_focus" | "fullscreen_exit" | "copy" | "cut" | "paste" | "devtools_open" | "multi_screen" | "right_click" | "face_check" | "no_face" | "multi_face" | "multi_voice" | "camera_lost" | "face_service_degraded" | "face_match_fail" | "bg_noise" | "tab_exit_warning_shown" | "tab_exit_strike";
         severity: "info" | "warning" | "violation";
-        occurredAt: string;
         detailJson?: Record<string, unknown> | undefined;
         evidenceBlobPath?: string | undefined;
     }>, "many">;
 }, "strict", z.ZodTypeAny, {
     attemptId: number;
     events: {
+        occurredAt: string;
         eventType: "tab_switch" | "window_blur" | "window_focus" | "fullscreen_exit" | "copy" | "cut" | "paste" | "devtools_open" | "multi_screen" | "right_click" | "face_check" | "no_face" | "multi_face" | "multi_voice" | "camera_lost" | "face_service_degraded" | "face_match_fail" | "bg_noise" | "tab_exit_warning_shown" | "tab_exit_strike";
         severity: "info" | "warning" | "violation";
-        occurredAt: string;
         detailJson?: Record<string, unknown> | undefined;
         evidenceBlobPath?: string | undefined;
     }[];
 }, {
     attemptId: number;
     events: {
+        occurredAt: string;
         eventType: "tab_switch" | "window_blur" | "window_focus" | "fullscreen_exit" | "copy" | "cut" | "paste" | "devtools_open" | "multi_screen" | "right_click" | "face_check" | "no_face" | "multi_face" | "multi_voice" | "camera_lost" | "face_service_degraded" | "face_match_fail" | "bg_noise" | "tab_exit_warning_shown" | "tab_exit_strike";
         severity: "info" | "warning" | "violation";
-        occurredAt: string;
         detailJson?: Record<string, unknown> | undefined;
         evidenceBlobPath?: string | undefined;
     }[];
